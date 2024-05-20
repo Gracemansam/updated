@@ -22,6 +22,7 @@
 //import org.springframework.context.annotation.Configuration;
 //import org.springframework.http.HttpStatus;
 //import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+//import org.springframework.security.config.http.SessionCreationPolicy;
 //import org.springframework.security.core.userdetails.User;
 //import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 //import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,8 +32,7 @@
 //import org.springframework.web.cors.CorsConfiguration;
 //import org.springframework.web.cors.CorsConfigurationSource;
 //import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-//
-//import java.util.List;
+//import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 //
 //import static org.springframework.security.config.Customizer.withDefaults;
 //
@@ -48,37 +48,22 @@
 //@Configuration
 //@AutoConfigureBefore(SecurityAutoConfiguration.class)
 //@ConditionalOnProperty(prefix = "sbp-demo.security", name = "app-enabled", havingValue = "true")
-//public class SecurityConfig {
+//public class SecurityConfig { // extends InMemoryUserDetailsManagerConfigurer<AuthenticationManagerBuilder> {
+//
+////    @Override
+////    public void configure(AuthenticationManagerBuilder builder) throws Exception {
+////        this.withUser("admin").password("admin").roles("ADMIN")
+////            .and()
+////            .withUser("user").password("user").roles("USER");
+////        super.configure(builder);
+////    }
 //
 //    @Bean
 //    public InMemoryUserDetailsManager inMemoryUserDetailsManager(PasswordEncoder encoder) {
 //        return new InMemoryUserDetailsManager(
-//            User
-//                    .withUsername("admin")
-//                    .password(encoder.encode("admin"))
-//                    .roles("ADMIN")
-//                    .build(),
-//            User
-//                    .withUsername("user")
-//                    .password(encoder.encode("user"))
-//                    .roles("USER")
-//                    .build());
+//            User.withUsername("admin").password(encoder.encode("admin")).roles("ADMIN").build(),
+//            User.withUsername("user").password(encoder.encode("user")).roles("USER").build());
 //    }
-//
-//    @Bean
-//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-//        http
-//                .authorizeHttpRequests(authorizeRequests ->
-//                        authorizeRequests
-//                                .requestMatchers("/plugin/**").hasRole("ADMIN")
-//                                .requestMatchers("/api/user").hasAnyRole("USER")
-//                                .requestMatchers("/api/admin").hasRole("ADMIN")
-//                                .anyRequest().authenticated()
-//                )
-//                .httpBasic(withDefaults());
-//        return http.build();
-//    }
-//
 //
 //    @Bean
 //    public PasswordEncoder encoder() {
@@ -102,5 +87,29 @@
 //        return (request, response, authException) ->
 //                response.sendError(HttpStatus.UNAUTHORIZED.ordinal(), "Unauthorized");
 //    }
+//
+//    @Bean
+//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+//        http
+//                .cors(withDefaults())
+//                .csrf(AbstractHttpConfigurer::disable)
+//                .authorizeHttpRequests(authorizeRequests ->
+//                        authorizeRequests
+//                                .requestMatchers(
+//                                        "/api/v1/auth/**",
+//                                        "/api/v1/roles/**"
+//                                )
+//                                .permitAll()
+//                                .anyRequest()
+//                                .authenticated()
+//                )
+//                .sessionManagement(sessionManagement ->
+//                        sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+////                .authenticationProvider(authenticationProvider)
+////                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+//        return http.build();
+//    }
+//
+//
 //
 //}

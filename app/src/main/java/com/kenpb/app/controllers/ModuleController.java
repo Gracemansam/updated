@@ -4,6 +4,7 @@ package com.kenpb.app.controllers;
 import com.kenpb.app.dtos.ApiResponse;
 import com.kenpb.app.dtos.ModuleStateResponse;
 import com.kenpb.app.exceptions.ModuleExceptionHandler;
+import com.kenpb.app.security.annotation.RequirePermission;
 import com.kenpb.app.service.ModuleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ public class ModuleController {
     private final ModuleService moduleService;
 
     @PostMapping("/upload")
+    @RequirePermission("ADMIN")
     public ResponseEntity<ApiResponse> uploadModule(@RequestParam("file") MultipartFile file) {
         ApiResponse response = moduleService.uploadModule(file);
         return new ResponseEntity<>(response, HttpStatus.OK);
@@ -81,6 +83,10 @@ public class ModuleController {
     public ResponseEntity<ApiResponse> getModule(@PathVariable String pluginId) {
         ApiResponse response = moduleService.getModule(pluginId);
         return ResponseEntity.ok().body(response);
+    }
+    @GetMapping("/hello")
+    public String hello() {
+        return "Hello from plugin";
     }
 
 }
