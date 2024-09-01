@@ -1,115 +1,125 @@
-///*
-// * Copyright (C) 2019-present the original author or authors.
-// *
-// * Licensed under the Apache License, Version 2.0 (the "License");
-// * you may not use this file except in compliance with the License.
-// * You may obtain a copy of the License at
-// *
-// *     http://www.apache.org/licenses/LICENSE-2.0
-// *
-// * Unless required by applicable law or agreed to in writing, software
-// * distributed under the License is distributed on an "AS IS" BASIS,
-// * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// * See the License for the specific language governing permissions and
-// * limitations under the License.
-// */
-//package com.kenpb.app.security;
-//
-//import org.springframework.boot.autoconfigure.AutoConfigureBefore;
-//import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-//import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
-//import org.springframework.context.annotation.Bean;
-//import org.springframework.context.annotation.Configuration;
-//import org.springframework.http.HttpStatus;
-//import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-//import org.springframework.security.config.http.SessionCreationPolicy;
-//import org.springframework.security.core.userdetails.User;
-//import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-//import org.springframework.security.crypto.password.PasswordEncoder;
-//import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-//import org.springframework.security.web.AuthenticationEntryPoint;
-//import org.springframework.security.web.SecurityFilterChain;
-//import org.springframework.web.cors.CorsConfiguration;
-//import org.springframework.web.cors.CorsConfigurationSource;
-//import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-//import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-//
-//import static org.springframework.security.config.Customizer.withDefaults;
-//
-///**
-// * [Spring Security](https://spring.io/projects/spring-security) configuration.
-// * This configuration should only be applied to App, not Plugin. Because security related
-// * configurations mostly work on servlet container, which is also the places that plugin
-// * controllers inject into on plugin starts. Servlet and security configuration should be
-// * disabled for plugin in general.
-// *
-// * @author <a href="https://github.com/hank-cp">Hank CP</a>
-// */
-//@Configuration
-//@AutoConfigureBefore(SecurityAutoConfiguration.class)
-//@ConditionalOnProperty(prefix = "sbp-demo.security", name = "app-enabled", havingValue = "true")
-//public class SecurityConfig { // extends InMemoryUserDetailsManagerConfigurer<AuthenticationManagerBuilder> {
-//
-////    @Override
-////    public void configure(AuthenticationManagerBuilder builder) throws Exception {
-////        this.withUser("admin").password("admin").roles("ADMIN")
-////            .and()
-////            .withUser("user").password("user").roles("USER");
-////        super.configure(builder);
-////    }
-//
+package com.kenpb.app.security;
+
+import com.kenpb.app.config.JwtAuthenticationFilter;
+import com.kenpb.app.config.JwtTokenProvider;
+import com.kenpb.app.config.JwtTokenValidator;
+import com.kenpb.app.serviceImplementation.CustomUserDetails;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+
+@Configuration
+@EnableWebSecurity
+//@EnableGlobalMethodSecurity(prePostEnabled = true)
+@AutoConfigureBefore(SecurityAutoConfiguration.class)
+@ConditionalOnProperty(prefix = "core-demo.security", name = "app-enabled", havingValue = "true")
+public class SecurityConfig {
+
+
+    @Autowired
+    private CustomUserDetails customUserDetails;
+
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
+
 //    @Bean
-//    public InMemoryUserDetailsManager inMemoryUserDetailsManager(PasswordEncoder encoder) {
-//        return new InMemoryUserDetailsManager(
-//            User.withUsername("admin").password(encoder.encode("admin")).roles("ADMIN").build(),
-//            User.withUsername("user").password(encoder.encode("user")).roles("USER").build());
-//    }
+//    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+//        http
+//                .authorizeHttpRequests(authz -> authz
+//                        .requestMatchers("/api/auth/**").permitAll()
+//                        .requestMatchers("/api/v1/**").permitAll()
+//                        .requestMatchers("/api/public/**").permitAll()
+//                        .requestMatchers("/api/user/**").hasRole("USER")
+//                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+//                        .anyRequest().authenticated()
+//                )
+//                .csrf(csrf -> csrf.disable())
+//                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+//                .exceptionHandling(exceptionHandling -> exceptionHandling
+//                        .authenticationEntryPoint((request, response, authException) -> {
+//                            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+//                            response.getWriter().write("{\"message\":\"Unauthorized\"}");
+//                        })
+//                )
+//                .addFilterBefore(new JwtTokenValidator(), BasicAuthenticationFilter.class);
 //
+//
+//        return http.build();
+//    }
+
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeRequests(authz -> authz
+                        .requestMatchers("/api/auth/*", "/api/v1/", "/api/public/*").permitAll()
+                        .requestMatchers("/api/user/**").hasRole("USER")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .anyRequest().authenticated()
+                )
+                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, customUserDetails), UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(exceptionHandling -> exceptionHandling
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                            response.getWriter().write("{\"message\":\"Unauthorized\"}");
+                        })
+                );
+
+        return http.build();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(
+            UserDetailsService userDetailsService,
+            PasswordEncoder passwordEncoder) {
+        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
+        authenticationProvider.setUserDetailsService(userDetailsService);
+        authenticationProvider.setPasswordEncoder(passwordEncoder);
+
+        return new ProviderManager(authenticationProvider);
+    }
+
+
+    @Bean
+    public PermissionCheckingAspect permissionCheckingAspect() {
+        return new PermissionCheckingAspect();
+    }
+
+
 //    @Bean
-//    public PasswordEncoder encoder() {
-//        return new BCryptPasswordEncoder();
+//    public UserDetailsService userDetailsService() {
+//        return new InMemoryUserDetailsManager();
 //    }
-//
 //    @Bean
 //    public PermissionCheckingAspect permissionCheckingAspect() {
 //        return new PermissionCheckingAspect();
 //    }
-//
 //    @Bean
-//    CorsConfigurationSource corsConfigurationSource() {
-//        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//        source.registerCorsConfiguration("/**", new CorsConfiguration().applyPermitDefaultValues());
-//        return source;
+//    public PasswordEncoder passwordEncoder() {
+//        return new BCryptPasswordEncoder();
 //    }
-//
-//    @Bean
-//    public AuthenticationEntryPoint restAuthenticationEntryPoint() {
-//        return (request, response, authException) ->
-//                response.sendError(HttpStatus.UNAUTHORIZED.ordinal(), "Unauthorized");
-//    }
-//
-//    @Bean
-//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-//        http
-//                .cors(withDefaults())
-//                .csrf(AbstractHttpConfigurer::disable)
-//                .authorizeHttpRequests(authorizeRequests ->
-//                        authorizeRequests
-//                                .requestMatchers(
-//                                        "/api/v1/auth/**",
-//                                        "/api/v1/roles/**"
-//                                )
-//                                .permitAll()
-//                                .anyRequest()
-//                                .authenticated()
-//                )
-//                .sessionManagement(sessionManagement ->
-//                        sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-////                .authenticationProvider(authenticationProvider)
-////                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-//        return http.build();
-//    }
-//
-//
-//
-//}
+}

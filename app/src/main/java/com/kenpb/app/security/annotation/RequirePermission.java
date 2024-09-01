@@ -18,9 +18,7 @@ package com.kenpb.app.security.annotation;
 import java.lang.annotation.*;
 
 /**
- * Indicate permission checking is needed on method call.
- *
- * @author <a href="https://github.com/hank-cp">Hank CP</a>
+
  */
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)

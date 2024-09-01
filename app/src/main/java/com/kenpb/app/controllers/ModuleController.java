@@ -23,7 +23,7 @@ public class ModuleController {
     private final ModuleService moduleService;
 
     @PostMapping("/upload")
-    @RequirePermission("ADMIN")
+   // @RequirePermission("ADMIN")
     public ResponseEntity<ApiResponse> uploadModule(@RequestParam("file") MultipartFile file) {
         ApiResponse response = moduleService.uploadModule(file);
         return new ResponseEntity<>(response, HttpStatus.OK);
@@ -35,19 +35,19 @@ public class ModuleController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @GetMapping("/{moduleId}/delete")
+    @GetMapping("/delete/{moduleId}")
     public ResponseEntity<ApiResponse> deleteModule(@PathVariable String moduleId) {
         ApiResponse response = moduleService.deleteModule(moduleId);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @GetMapping("/{moduleId}/stop")
+    @GetMapping("/stop/{moduleId}")
     public ResponseEntity<ApiResponse> stopModule(@PathVariable String moduleId) {
         ApiResponse response = moduleService.stopModule(moduleId);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @GetMapping("/{pluginId}/start")
+    @GetMapping("/start/{pluginId}")
     public ResponseEntity<ApiResponse> startModule(@PathVariable String pluginId) {
         ApiResponse response = moduleService.startModule(pluginId);
         return new ResponseEntity<>(response, HttpStatus.OK);
